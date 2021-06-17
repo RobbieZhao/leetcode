@@ -34,7 +34,7 @@ Merge intervals
  - 解答视频里面有一句话很关键：Whenever you have a solution that's `O(n^2)`, consider sorting. 
 
 
-### Leetcode 17
+### Leetcode 17 Medium
 
 #### 2021.6.15
 
@@ -163,7 +163,7 @@ Merge intervals
 
  - 可以把递归 （backtrack）理解为DFS， Queue这个方法就是BFS
 
-### lc 19
+### lc 19 Medium
 
 #### 2021.6.15 
 
@@ -319,5 +319,265 @@ It's like snowballing. We gather all the zeros along the way, so that the number
 	        }
 	        
 	        throw new IllegalArgumentException();
+	    }
+	}
+
+### lc 22 medium
+
+#### 2021.6.16 
+
+这是自己做出来的。一个典型的backtracking的问题
+
+	class Solution {
+	    public List<String> generateParenthesis(int n) {
+	        List<String> output = new ArrayList<>();
+	        
+	        backtrack(output, new StringBuilder(), 0, 0, n);
+	        
+	        return output;
+	    }
+	    
+	    public void backtrack(List<String> output, StringBuilder sb, int numOfLeftParen, int numOfUnclosed, int n) {
+	        if (numOfLeftParen == n && numOfUnclosed == 0) {
+	            output.add(sb.toString());
+	            return;
+	        }
+	        
+	        char[] options;
+	        if (numOfLeftParen == n) {
+	            options = new char[]{')'};
+	        } else if (numOfUnclosed == 0) {
+	            options = new char[]{'('};
+	        } else {
+	            options = new char[]{'(', ')'};
+	        }
+	        
+	        for (char c : options) {
+	            sb.append(c);
+	            if (c == '(') {
+	                backtrack(output, sb, numOfLeftParen + 1, numOfUnclosed + 1, n);
+	            } else {
+	                backtrack(output, sb, numOfLeftParen, numOfUnclosed - 1, n);
+	            }
+	            sb.deleteCharAt(sb.length() - 1);
+	        }
+	    }
+	}
+
+其中backtrack的代码可以稍微优化一下，不过复杂度不变
+
+这是优化后的代码：
+
+	class Solution {
+	    public List<String> generateParenthesis(int n) {
+	        List<String> output = new ArrayList<>();
+	        
+	        backtrack(output, new StringBuilder(), 0, 0, n);
+	        
+	        return output;
+	    }
+	    
+	    public void backtrack(List<String> output, StringBuilder sb, int numOfLeftParen, int numOfUnclosed, int n) {
+	        if (numOfLeftParen == n && numOfUnclosed == 0) {
+	            output.add(sb.toString());
+	            return;
+	        }
+	        
+	        if (numOfLeftParen != n) {
+	            sb.append('(');
+	            backtrack(output, sb, numOfLeftParen + 1, numOfUnclosed + 1, n);
+	            sb.deleteCharAt(sb.length() - 1);
+	        }
+	        
+	        if (numOfUnclosed != 0) {
+	            sb.append(')');
+	            backtrack(output, sb, numOfLeftParen, numOfUnclosed - 1, n);
+	            sb.deleteCharAt(sb.length() - 1);
+	        }
+	    }
+	}
+
+### lc 150
+
+#### 2021.6.16
+
+典型的stack解法
+
+	class Solution {
+	    public int evalRPN(String[] tokens) {
+	        Stack<Integer> stack = new Stack<>();
+	        
+	        for (String token : tokens) {
+	            
+	            if ("+-*/".contains(token)) {
+	                int second = stack.pop();
+	                int first = stack.pop();
+	                
+	                if (token.equals("+")) {
+	                    stack.push(first + second);
+	                } else if (token.equals("-")) {
+	                    stack.push(first - second);
+	                } else if (token.equals("*")) {
+	                    stack.push(first * second);
+	                } else {
+	                    stack.push(first / second);
+	                }
+	            } else {
+	                stack.push(Integer.valueOf(token));
+	            }
+	        }
+	        
+	        return stack.pop();
+	    }
+	}
+
+### lc 1328 Break a palindrome medium
+
+#### 2021.6.16
+
+这是自己做的。本来是想把中间的字符去掉 （如果是奇数个字符），然后再做，但是调整了很多次都觉得代码太复杂了，所以不如直接loop
+
+	class Solution {
+	    public String breakPalindrome(String palindrome) {
+	        if (palindrome.length() == 1) {
+	            return "";
+	        }
+	        
+	        for (int i = 0; i < palindrome.length(); i++) {
+	            if (i == palindrome.length() / 2 && palindrome.length() % 2 == 1) {
+	                continue;
+	            } 
+	            
+	            if (palindrome.charAt(i) != 'a') {
+	                return palindrome.substring(0, i) + 'a' + palindrome.substring(i + 1);
+	            }
+	        }
+	        
+	        return palindrome.substring(0, palindrome.length() - 1) + 'b';
+	    }
+	}
+
+在看了解答后发现其实如果过半的时候，还没有return，这说明所有的字符都是`a`。那就不用继续看了，直接把最后一个字符换成`b`就行。所以进一步优化
+
+	class Solution {
+	    public String breakPalindrome(String palindrome) {
+	        if (palindrome.length() == 1) {
+	            return "";
+	        }
+	        
+	        for (int i = 0; i < palindrome.length() / 2; i++) {
+	            if (palindrome.charAt(i) != 'a') {
+	                return palindrome.substring(0, i) + 'a' + palindrome.substring(i + 1);
+	            }
+	        }
+	        
+	        return palindrome.substring(0, palindrome.length() - 1) + 'b';
+	    }
+	}
+
+### lc 338 Counting bits
+
+#### 2021.6.16 
+
+第一遍做的（做了点修缮）
+
+	class Solution {
+	    public int[] countBits(int n) {
+	        int[] result = new int[n + 1];
+	                
+	        for (int i = 1; i <= n; ) {
+	            int count = i;
+	            for (int j = 0; j < count && i <= n; j++) {
+	                result[i] = 1 + result[j];
+	                i++;
+	            }   
+	        }
+	        
+	        return result;
+	    }
+	}
+	
+看了一遍答案重做
+
+	class Solution {
+	    public int[] countBits(int n) {
+	        int[] result = new int[n + 1];
+	                
+	        for (int i = 1; i <= n; i++) {
+	            result[i] = result[i >> 1] + i % 2;
+	        }
+	        
+	        return result;
+	    }
+	}
+
+### lc 239 Sliding Window Maximum Hard
+
+#### 2021.6.16
+
+又是毫无思路的一题，看了答案后：
+
+	class Solution {
+	    public int[] maxSlidingWindow(int[] nums, int k) {
+	        Deque<Integer> deque = new ArrayDeque<>();
+	        
+	        int n = nums.length;
+	        int[] maxs = new int[n - k + 1];
+	        
+	        for (int i = 0; i < n; i++) {
+	            cleanDeque(i, k, deque, nums);
+	            deque.addLast(i);
+	            
+	            int maxIndex = deque.getFirst();
+	            if (i + 1 - k >= 0) {
+	                maxs[i + 1 - k] = nums[maxIndex];
+	            }
+	        }
+	        
+	        return maxs;
+	    }
+	    
+	    private void cleanDeque(int i, int k, Deque<Integer> deque, int[] nums) {
+	        if (!deque.isEmpty() && deque.getFirst() == i - k) {
+	            deque.removeFirst();
+	        }
+	        
+	        while (!deque.isEmpty() && nums[deque.getLast()] < nums[i]) {
+	            deque.removeLast();
+	        }
+	    }
+	}
+
+这是看了solution3 后做的
+
+	class Solution {
+	    public int[] maxSlidingWindow(int[] nums, int k) {
+	        int n = nums.length;
+	        
+	        int[] left = new int[n];
+	        int[] right = new int[n];
+	        
+	        for (int i = 0; i < n; i++) {
+	            if (i % k == 0) {
+	                left[i] = nums[i];
+	            } else {
+	                left[i] = Math.max(left[i - 1], nums[i]);
+	            }
+	        }
+	        
+	        for (int j = n - 1; j >= 0; j--) {
+	            if (j == n - 1 || (j + 1) % k == 0) {
+	                right[j] = nums[j];
+	            } else {
+	                right[j] = Math.max(right[j + 1], nums[j]);
+	            }
+	        }
+	        
+	        int[] maxs = new int[n - k + 1];
+	        for (int i = 0; i < maxs.length; i++) {
+	            maxs[i] = Math.max(right[i], left[i + k - 1]);
+	        }
+	        
+	        return maxs;
 	    }
 	}
