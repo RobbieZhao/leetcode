@@ -581,3 +581,421 @@ It's like snowballing. We gather all the zeros along the way, so that the number
 	        return maxs;
 	    }
 	}
+
+### lc 1481 Least Number of Unique Integers after K Removals Medium
+
+#### 2021.6.17
+
+这是自己做的
+
+	class Solution {
+	    public int findLeastNumOfUniqueInts(int[] arr, int k) {
+	        Map<Integer, Integer> map = new HashMap<>();
+	        
+	        for (int i = 0; i < arr.length; i++) {
+	            map.put(arr[i], map.getOrDefault(arr[i], 0) + 1);
+	        }
+	        
+	        int[][] counts= new int[map.size()][2];
+	        int count = 0;
+	        for (Map.Entry<Integer,Integer> entry : map.entrySet()) {
+	            counts[count][0] = entry.getKey();
+	            counts[count][1] = entry.getValue();
+	            count++;
+	        }
+	        
+	        Arrays.sort(counts, (a, b) -> Integer.compare(a[1], b[1]));
+	        
+	        for (int i = 0; i < counts.length; i++) {
+	            if (counts[i][1] <= k) {
+	                k = k - counts[i][1];
+	            } else {
+	                return counts.length - i;
+	            }
+	        }
+	        
+	        return 0;
+	    }
+	}
+
+看了答案之后用priorityqueue做了一遍：
+
+	class Solution {
+	    public int findLeastNumOfUniqueInts(int[] arr, int k) {
+	        Map<Integer, Integer> map = new HashMap<>();
+	        for (int a : arr) {
+	            map.put(a, map.getOrDefault(a, 0) + 1);
+	        }
+	        
+	        PriorityQueue<Integer> pq = new PriorityQueue<>(Comparator.comparing(map::get));
+	        pq.addAll(map.keySet());
+	        
+	        while (k > 0) {
+	            k = k - map.get(pq.poll());
+	        }
+	        
+	        if (k < 0) {
+	            return pq.size() + 1;
+	        }
+	        
+	        return pq.size();
+	    }
+	}
+
+答案的第二种做法，进一步用treemap把hashmap的结果压缩
+
+	class Solution {
+	    public int findLeastNumOfUniqueInts(int[] arr, int k) {
+	        Map<Integer, Integer> map = new HashMap<>();
+	        for (int a : arr) {
+	            map.put(a, map.getOrDefault(a, 0) + 1);
+	        }
+	        
+	        TreeMap<Integer, Integer> occurrenceCount = new TreeMap<>();
+	        for (Integer v : map.values()) {
+	            occurrenceCount.put(v, occurrenceCount.getOrDefault(v, 0) + 1);
+	        }
+	        
+	        int distinctCount = map.size();
+	        
+	        while (k > 0) {
+	            Map.Entry<Integer, Integer> entry = occurrenceCount.pollFirstEntry();
+	            int key = entry.getKey();
+	            int value = entry.getValue();
+	            if (k > key * value) {
+	                k = k - key * value;
+	                distinctCount -= value;
+	            } else {
+	                return distinctCount - k / key;
+	            }
+	        }
+	        
+	        return distinctCount;
+	    }
+	}
+
+答案的第三种解法，与其用一个treemap，不如直接放在array里
+
+	class Solution {
+	    public int findLeastNumOfUniqueInts(int[] arr, int k) {
+	        Map<Integer, Integer> map = new HashMap<>();
+	        for (int a : arr) {
+	            map.put(a, map.getOrDefault(a, 0) + 1);
+	        }
+	        
+	        int[] occurrenceCount = new int[arr.length + 1];
+	        for (int v : map.values()) {
+	            occurrenceCount[v]++;
+	        }
+	        
+	        int distinctCount = map.size();
+	        int occurrence = 1;
+	        while (k > 0) {
+	            if (k > occurrence * occurrenceCount[occurrence]) {
+	                k = k - occurrence * occurrenceCount[occurrence];
+	                distinctCount -= occurrenceCount[occurrence];
+	                occurrence++;
+	            } else {
+	                return distinctCount  - k / occurrence;
+	            }
+	        }
+	        
+	        return distinctCount;
+	    }
+	}
+
+### lc 1041 Robot Bounded In Circle Medium 
+
+#### 2021.6.17
+
+这是自己做的，如果方向变了，或者还停留在原地，那就迟早会绕回来
+
+	class Solution {
+	    public boolean isRobotBounded(String instructions) {
+	        int x = 0, y = 0;
+	        char direction = 'N';
+	        
+	        for (int i = 0; i < instructions.length(); i++) {
+	            char c = instructions.charAt(i);
+	            if (c == 'G') {                
+	                if (direction == 'N') {
+	                    y++;
+	                } else if (direction == 'S') {
+	                    y--;
+	                } else if (direction == 'W') {
+	                    x--;
+	                } else {
+	                    x++;
+	                }
+	            } else if (c == 'L') {
+	                if (direction == 'N') {
+	                    direction = 'W';
+	                } else if (direction == 'S') {
+	                    direction = 'E';
+	                } else if (direction == 'W') {
+	                    direction = 'S';
+	                } else {
+	                    direction = 'N';
+	                }
+	            } else {
+	                if (direction == 'N') {
+	                    direction = 'E';
+	                } else if (direction == 'S') {
+	                    direction = 'W';
+	                } else if (direction == 'W') {
+	                    direction = 'N';
+	                } else {
+	                    direction = 'S';
+	                }
+	            }
+	        }
+	                
+	        return (x == 0 && y == 0) || direction != 'N';
+	    }
+	}
+
+看了答案后做了一遍，复杂度没有变化，只不过变得精简了许多
+
+	class Solution {
+	    public boolean isRobotBounded(String instructions) {
+	        int x = 0, y = 0;
+	        int[][] steps = new int[][]{{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+	        int directionIndex = 0;
+	        
+	        for (int i = 0; i < instructions.length(); i++) {
+	            char c = instructions.charAt(i);
+	            if (c == 'G') {
+	                x += steps[directionIndex][0];
+	                y += steps[directionIndex][1];
+	            } else if (c == 'L') {
+	                directionIndex = (directionIndex + 3) % 4;
+	            } else {
+	                directionIndex = (directionIndex + 1) % 4;
+	            }
+	        }
+	        
+	        return (x == 0 && y == 0) || directionIndex != 0;
+	    }
+	}
+
+### lc 973  K closest points to origin Medium
+
+#### 2021.6.17
+
+这是我第一遍做的。虽然用了priorityqueue，但是复杂度跟直接sort的复杂度一样的。。。
+
+	class Solution {
+	    public int[][] kClosest(int[][] points, int k) {
+	        PriorityQueue<int[]> pq = new PriorityQueue<>(10, (point1, point2) -> (squareSum(point1) - squareSum(point2)));
+	        
+	        for (int i = 0; i < points.length; i++) {
+	            pq.add(points[i]);
+	        }
+	        
+	        int[][] result = new int[k][2];
+	        for (int i = 0; i < k; i++) {
+	            result[i] = pq.poll();
+	        }
+	        
+	        return result;
+	    }
+	    
+	    public int squareSum(int[] point) {
+	        return point[0] * point[0] + point[1] * point[1];
+	    }
+	}
+
+看了答案后发现这个priorityQueue的顺序应该反过来，这样就能保证里面永远只有k个
+
+	class Solution {
+	    public int[][] kClosest(int[][] points, int k) {
+	        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> squareSum(b) - squareSum(a));
+	        
+	        for (int i = 0; i < points.length; i++) {
+	            pq.add(points[i]);
+	            if (pq.size() > k) {
+	                pq.poll();
+	            }
+	        }
+	        
+	        int[][] result = new int[k][2];
+	        for (int i = 0; i < k; i++) {
+	            result[i] = pq.poll();
+	        }
+	        
+	        return result;
+	    }
+	    
+	    private int squareSum(int[] point) {
+	        return point[0] * point[0] + point[1] * point[1];
+	    }
+	}
+	
+看了答案里的第三种解答后。这个partition的方法太巧秒了，我自己写的话肯定只能写出来create new array用两个pointer，然后再copy回去的方法。
+
+	class Solution {
+	    public int[][] kClosest(int[][] points, int k) {
+	        int pivot = 0;
+	        
+	        int l = 0, r = points.length - 1;
+	        while (l < r) {
+	            int mid = partition(points, l, r);
+	            if (mid == k) {
+	                break;
+	            } else if (mid < k) {
+	                l = mid + 1;
+	            } else {
+	                r = mid - 1;
+	            }
+	        }
+	        
+	        return Arrays.copyOf(points, k);
+	    }
+	    
+	    private int partition(int[][] points, int l, int r) {
+	        int[] pivot = points[l];
+	        
+	        while (l < r) {
+	            while (l < r && compare(points[r], pivot) >= 0) {
+	                r--;
+	            }
+	            points[l] = points[r];
+	            
+	            while (l < r && compare(points[l], pivot) <= 0) {
+	                l++;
+	            }
+	            points[r] = points[l];
+	        }
+	        
+	        points[l] = pivot;
+	        
+	        return l;
+	    }
+	    
+	    private int compare(int[] A, int[] B) {
+	        return squareSum(A) - squareSum(B);
+	    }
+	    
+	    private int squareSum(int[] point) {
+	        return point[0] * point[0] + point[1] * point[1];
+	    }
+	}
+
+### lc 448 Find all numbers disappeared in an array Easy
+
+#### 2021.6.17
+
+第一思路，`O(N)` 的space
+
+	class Solution {
+	    public List<Integer> findDisappearedNumbers(int[] nums) {
+	        int[] count = new int[nums.length + 1];
+	        
+	        for (int i = 0; i < nums.length; i++) {
+	            count[nums[i]]++;
+	        }
+	        
+	        List<Integer> result = new ArrayList<>();
+	        for (int i = 1; i <= nums.length; i++) {
+	            if (count[i] == 0) {
+	                result.add(i);
+	            }
+	        }
+	        
+	        return result;
+	    }
+	}
+
+看了答案之后的思路
+
+	class Solution {
+	    public List<Integer> findDisappearedNumbers(int[] nums) {
+	        for (int i = 0; i < nums.length; i++) {
+	            int index = Math.abs(nums[i]) - 1;
+	            
+	            if (nums[index] > 0) {
+	                nums[index] = nums[index] * -1;
+	            }
+	        }
+	        
+	        List<Integer> result = new ArrayList<>();
+	        for (int i = 0; i < nums.length; i++) {
+	            if (nums[i] > 0) {
+	                result.add(i + 1);
+	            }
+	        }
+	        
+	        return result;
+	    }
+	}
+	
+ - 既然它要求不要extra space, 就想想它可不可以修改输入
+
+
+### lc 1335 Minimum Difficulty of a job schedule Hard
+
+holy smokes! 居然解出来了一道hard
+
+	class Solution {
+	    private int[] jobDifficulty;
+	    private int[][] memo;
+	    
+	    public int minDifficulty(int[] jobDifficulty, int d) {
+	        int N = jobDifficulty.length;
+	        if (d > N) {
+	            return -1;
+	        }
+	        
+	        this.jobDifficulty = jobDifficulty;
+	        memo = new int[N][d];
+	        
+	        for (int i = 0; i < N; i++) {
+	            Arrays.fill(memo[i], -1);
+	        }
+	        
+	        return calculate(N - 1, d);
+	    }
+	    
+	    private int calculate(int end, int d) {
+	        if (end == 0) {
+	            memo[0][0] = jobDifficulty[0];
+	            return memo[0][0];
+	        }
+	        
+	        if (d == 1) {
+	            int maxOfPrevious = memo[end - 1][d - 1] == -1 ? calculate(end - 1, d) : memo[end - 1][d - 1];
+	            memo[end][d - 1] = Math.max(maxOfPrevious, jobDifficulty[end]);
+	            return memo[end][d-1];
+	        }
+	        
+	        int min = Integer.MAX_VALUE;
+	        int maxOfLastDay = jobDifficulty[end];
+	        for (int i = end - 1; i >= d - 2; i--) {
+	            int minOfPrevious = memo[i][d - 2] == -1 ? calculate(i, d - 1) : memo[i][d - 2];
+	            if (jobDifficulty[i + 1] > maxOfLastDay) {
+	                maxOfLastDay = jobDifficulty[i + 1];
+	            }
+	            if (minOfPrevious + maxOfLastDay < min) {
+	                min = minOfPrevious + maxOfLastDay;
+	            }
+	        }
+	        
+	        memo[end][d-1] = min;
+	        
+	        return min;
+	    }
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
