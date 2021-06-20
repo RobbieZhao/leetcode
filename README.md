@@ -986,16 +986,337 @@ holy smokes! 居然解出来了一道hard
 	    }
 	}
 
+### lc 31 Next Permutation Medium
 
+#### 2021.6.18
 
+毫无思路的一题，看了解答的思路做的
 
+	class Solution {
+	    public void nextPermutation(int[] nums) {
+	        // get i
+	        int i;
+	        for (i = nums.length - 1; i >= 1; i--) {
+	            if (nums[i - 1] < nums[i]) {
+	                break;
+	            }
+	        }
+	        
+	        if (i == 0) {
+	            reverse(nums, 0);
+	            return;
+	        }
+	        
+	        // get j
+	        int j;
+	        for (j = i; j < nums.length; j++) {     
+	            if (nums[i - 1] >= nums[j]) {
+	                j--;
+	                break;
+	            }
+	            
+	            if (j == nums.length - 1) {
+	                break;
+	            }
+	        }
+	        
+	        swap(nums, i - 1, j);
+	        
+	        reverse(nums, i);
+	    }
+	    
+	    private void swap(int[] nums, int i, int j) {
+	        int tmp = nums[i];
+	        nums[i] = nums[j];
+	        nums[j] = tmp;
+	    }
+	    
+	    private void reverse(int[] nums, int start) {
+	        int end = nums.length - 1;
+	        while (start < end) {
+	            swap(nums, start, end);
+	            start++;
+	            end--;
+	        }
+	    }
+	}
 
+### lc 34. Find First and Last Position of Element in Sorted Array Medium
 
+#### 2021.6.19
 
+题目并不难，但是还是做不出来。。
 
+	class Solution {
+	    public int[] searchRange(int[] nums, int target) {
+	        int left = findBound(nums, target, true);
+	        int right = findBound(nums, target, false);
+	        
+	        return new int[]{left, right};
+	    }
+	    
+	    private int findBound(int[] nums, int target, boolean isLeft) {
+	        int start = 0;
+	        int end = nums.length - 1;
+	        
+	        while (start <= end) {
+	            int mid = (start + end) / 2;
+	            
+	            if (nums[mid] == target) {
+	                if (isLeft) {
+	                    if (mid == start || nums[mid - 1] != target) {
+	                        return mid;
+	                    } else {
+	                        end = mid - 1;
+	                    }
+	                } else {
+	                    if (mid == end || nums[mid + 1] != target) {
+	                        return mid;
+	                    } else {
+	                        start = mid + 1;
+	                    }
+	                }
+	            } else if (nums[mid] > target) {
+	                end = mid - 1;
+	            } else {
+	                start = mid + 1;
+	            }
+	        }
+	        
+	        return -1;
+	    }
+	}
 
+### lc Combination Sum 39 Medium
 
+#### 2021.6.19
 
+backtrack 问题
 
+	class Solution {
+	    private List<List<Integer>> output;
+	    private int[] candidates;
+	    private int target;
+	    
+	    public List<List<Integer>> combinationSum(int[] candidates, int target) {
+	        Arrays.sort(candidates);
+	        
+	        this.candidates = candidates;
+	        this.target = target;
+	        this.output = new ArrayList<>();
+	        
+	        List<Integer> tmp = new ArrayList<>();
+	        
+	        backtrack(tmp, 0, 0);
+	        
+	        return output;
+	    }
+	    
+	    private void backtrack(List<Integer> tmp, int sum, int start) {
+	        if (start == candidates.length) {
+	            return;
+	        }
+	        
+	        if (sum == target) {
+	            output.add(new ArrayList<>(tmp));
+	        }
+	        
+	        for (int i = start; i < candidates.length; i++) {
+	            if (candidates[i] > target - sum) {
+	                break;
+	            }
+	            
+	            tmp.add(candidates[i]);
+	            sum = sum + candidates[i];
+	            backtrack(tmp, sum, i);
+	            tmp.remove(tmp.size() - 1);
+	            sum = sum - candidates[i];
+	        }
+	    }
+	}
+	
+### lc 48. Rotate Image Medium
 
+#### 2021.6.19
 
+自己做的！！cs61b有一节Q&A就讲了这题！！
+
+	class Solution {
+	    public void rotate(int[][] matrix) {
+	        int n = matrix.length;
+	        for (int row = 0; row < n / 2; row++) {
+	            for (int col = row; col < n - 1 - row; col++) {
+	                rotate(matrix, row, col);
+	            }
+	        }
+	    }
+	    
+	    private void rotate(int[][] matrix, int i, int j) {
+	        int n = matrix.length;
+	        
+	        int tmp = matrix[i][j];
+	        matrix[i][j] = matrix[n-1-j][i];
+	        matrix[n-1-j][i] = matrix[n-1-i][n-1-j];
+	        matrix[n-1-i][n-1-j] = matrix[j][n-1-i];
+	        matrix[j][n-1-i] = tmp;
+	    }
+	}
+
+看了答案做的。如果是先reflect再transpose, 那就是逆时针旋转90度
+
+	class Solution {
+	    public void rotate(int[][] matrix) {
+	        transpose(matrix);
+	        reflect(matrix);
+	    }
+	    
+	    private void transpose(int[][] matrix) {
+	        for (int i = 0; i < matrix.length; i++) {
+	            for (int j = i + 1; j < matrix.length; j++) {
+	                int tmp = matrix[i][j];
+	                matrix[i][j] = matrix[j][i];
+	                matrix[j][i] = tmp;
+	            }
+	        }
+	    }
+	    
+	    private void reflect(int[][] matrix) {
+	        for (int i = 0; i < matrix.length; i++) {
+	            for (int j = 0; j < matrix.length / 2; j++) {
+	                int tmp = matrix[i][j];
+	                matrix[i][j] = matrix[i][matrix.length - 1 - j];
+	                matrix[i][matrix.length - 1 - j] = tmp;
+	            }
+	        }
+	    }
+	    
+	}
+
+### lc 543 Diameter of Binary Tree Easy
+
+#### 2021.6.19
+
+自己做的 recursive
+
+	class Solution {
+	    public int diameterOfBinaryTree(TreeNode root) {
+	        if (root == null) {
+	            return -1;
+	        }
+	        
+	        int leftDiameter = diameterOfBinaryTree(root.left);
+	        int rightDiameter = diameterOfBinaryTree(root.right);
+	        
+	        int sumHeight = 2 + height(root.left) + height(root.right);
+	        
+	        return Math.max(Math.max(leftDiameter, rightDiameter), sumHeight);
+	    }
+	    
+	    private int height(TreeNode root) {
+	        if (root == null) {
+	            return -1;
+	        } 
+	        
+	        int leftHeight = height(root.left);
+	        int rightHeight = height(root.right);
+	        
+	        return 1 + Math.max(leftHeight, rightHeight);
+	    }
+	}
+
+看了答案后做的
+
+	class Solution {
+	    private int diameter;
+	    public int diameterOfBinaryTree(TreeNode root) {
+	        diameter = 0;
+	        longestPath(root);
+	        return diameter;
+	    }
+	    
+	    private int longestPath(TreeNode root) {
+	        if (root == null) {
+	            return -1;
+	        }
+	        
+	        int leftLongest = longestPath(root.left) + 1;
+	        int rightLongest = longestPath(root.right) + 1;
+	        
+	        diameter = Math.max(diameter, leftLongest + rightLongest);
+	        
+	        return Math.max(leftLongest, rightLongest);
+	    }
+	}
+
+### lc 10 Regular Expression Matching Hard
+
+#### 2021.6.19
+
+看了recursive的答案做的。。
+
+	class Solution {
+	    public boolean isMatch(String s, String p) {
+	        if (p.isEmpty()) {
+	            return s.isEmpty();
+	        }
+	        
+	        boolean first_match = !s.isEmpty() && (s.charAt(0) == p.charAt(0) || p.charAt(0) == '.');
+	        
+	        if (p.length() == 1) {
+	            return first_match && s.length() == 1;
+	        }
+	        
+	        if (p.charAt(1) == '*') {
+	            return isMatch(s, p.substring(2)) || (first_match && isMatch(s.substring(1), p));
+	        }
+	        
+	        return first_match && isMatch(s.substring(1), p.substring(1));
+	    }
+	}
+
+看了dp的解法重做了一遍，不过说实话，dp的解法和recursive的方法非常相似。
+
+	enum Result {
+	    TRUE, FALSE
+	}
+	
+	class Solution {
+	    private Result[][] memo;
+	    private String s;
+	    private String p;
+	    public boolean isMatch(String s, String p) {
+	        memo = new Result[s.length() + 1][p.length() + 1];
+	        this.s = s;
+	        this.p = p;
+	        
+	        return calculate(0, 0);
+	    }
+	    
+	    private boolean calculate(int i, int j) {
+	        if (memo[i][j] != null) {
+	            return memo[i][j] == Result.TRUE;
+	        }
+	        
+	        boolean result;
+	        if (j == p.length()) {
+	            result = i == s.length();
+	        } else {
+	        
+	            boolean firstMatch = i != s.length() && (s.charAt(i) == p.charAt(j) || p.charAt(j) == '.');
+	
+	            if (j == p.length() - 1) {
+	                result = i == s.length() - 1 && firstMatch;
+	            } else {
+	
+	                if (p.charAt(j + 1) == '*') {
+	                    result = (firstMatch && calculate(i + 1, j)) || calculate(i, j + 2);
+	                } else {
+	                    result = firstMatch && calculate(i + 1, j + 1);
+	                }
+	            }
+	        }
+	        
+	        memo[i][j] = result ? Result.TRUE : Result.FALSE;
+	        return result;
+	    }
+	}
